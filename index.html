@@ -15,7 +15,6 @@
       align-items: center;
       height: 100vh;
     }
-
     .card {
       background-color: #fff;
       padding: 40px;
@@ -24,18 +23,15 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.1);
       text-align: center;
     }
-
     h1 {
       font-size: 24px;
       margin-bottom: 16px;
     }
-
     p {
       color: #555;
       margin-bottom: 24px;
       font-size: 16px;
     }
-
     button {
       background-color: #6772e5;
       color: white;
@@ -46,17 +42,14 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-
     button:hover {
       background-color: #5469d4;
     }
-
     .footer {
       margin-top: 20px;
       font-size: 12px;
       color: #999;
     }
-
     @media (max-width: 480px) {
       .card {
         margin: 20px;
@@ -76,18 +69,14 @@
     <button id="checkout-button">Comprar / Buy Now</button>
     <div class="footer">Powered by Stripe · Render · n8n</div>
   </div>
-
   <script src="https://js.stripe.com/v3/"></script>
   <script>
-    const stripe = Stripe("pk_test_XXXXXXXXXXXXXX"); // 🔁 Reemplaza con tu public key
-    const checkoutButton = document.getElementById("checkout-button");
-
-    checkoutButton.addEventListener("click", async () => {
+    const stripe = Stripe("pk_test_XXXXXXXXXXXXXX");
+    document.getElementById("checkout-button").addEventListener("click", async () => {
       const response = await fetch("/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" }
       });
-
       const session = await response.json();
       await stripe.redirectToCheckout({ sessionId: session.id });
     });
