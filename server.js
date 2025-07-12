@@ -2,10 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const bodyParser = require('body-parser');
+const path = require('path');
+const fetch = require('node-fetch');
 const cors = require('cors');
 
 const app = express();
 app.use(cors());
+app.use(express.static('public'));
 app.use(bodyParser.json());
 
 app.post('/create-checkout-session', async (req, res) => {
@@ -13,45 +16,53 @@ app.post('/create-checkout-session', async (req, res) => {
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
-    line_items: [
-      {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: product,
-          },
-          unit_amount: 500,
+    line_items: [{
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'test.pdf'
         },
-        quantity: 1,
+        unit_amount: 500
       },
-    ],
+      quantity: 1
+    }],
     mode: 'payment',
     success_url: `${process.env.DOMAIN}/success`,
     cancel_url: `${process.env.DOMAIN}/cancel`,
     customer_email: email,
-    metadata: { product },
+    metadata: {
+      product
+    }
   });
 
   res.json({ id: session.id });
 });
 
-app.post('/webhook', bodyParser.raw({ type: 'application/json' }), (request, response) => {
-  const sig = request.headers['stripe-signature'];
+app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(request.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    return response.status(400).send(`Webhook Error: ${err.message}`);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    console.log("✅ Payment received:", session.customer_email, session.metadata.product);
-    // Aquí se puede enviar a n8n con fetch o axios
+    const email = session.customer_email;
+    const product = session.metadata.product;
+
+    await fetch("https://n8n-jr4i.onrender.com/webhook/confirmacion-pago", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, producto: product })
+    });
   }
 
-  response.status(200).json({ received: true });
+  res.status(200).json({ received: true });
 });
 
-app.listen(4242, () => console.log('Servidor en puerto 4242'));
+app.listen(4242, () => {
+  console.log("Servidor en puerto 4242");
+});

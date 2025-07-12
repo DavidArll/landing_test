@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Descarga tu producto digital</title>
   <style>
@@ -32,12 +32,16 @@
       margin-bottom: 24px;
       font-size: 16px;
     }
+    input, button {
+      margin: 10px 0;
+      padding: 12px;
+      width: 100%;
+      font-size: 16px;
+    }
     button {
       background-color: #6772e5;
       color: white;
       border: none;
-      padding: 14px 24px;
-      font-size: 16px;
       border-radius: 6px;
       cursor: pointer;
       transition: background-color 0.3s ease;
@@ -50,33 +54,40 @@
       font-size: 12px;
       color: #999;
     }
-    @media (max-width: 480px) {
-      .card {
-        margin: 20px;
-        padding: 20px;
-      }
-    }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Producto Digital</h1>
+    <h1>Producto Digital: test.pdf</h1>
     <p>
-      Accede a nuestro recurso exclusivo alojado en Google Drive.<br>
-      Compra segura con Stripe. Acceso por 3 días.<br><br>
-      💡 <i>Access to our digital product hosted on Google Drive. Secure payment with Stripe. Temporary access for 3 days.</i>
+      Acceso temporal al archivo por 3 días después del pago.<br>
+      <i>Temporary access to the file for 3 days after payment.</i>
     </p>
+
+    <input type="email" id="email" placeholder="Correo electrónico / Email" required />
+
     <button id="checkout-button">Comprar / Buy Now</button>
+
     <div class="footer">Powered by Stripe · Render · n8n</div>
   </div>
+
   <script src="https://js.stripe.com/v3/"></script>
   <script>
-    const stripe = Stripe("pk_test_XXXXXXXXXXXXXX");
+    const stripe = Stripe("pk_test_51Rk9hJRukc7l2itiYColNN4uLu3v3bL76d6fG5M5JLxFT14R74ZlhidHkNZJFQzb2XUaprF6SoazRggafKDuvHgP00GQCnJVdr"); // Reemplaza con tu clave pública real
+
     document.getElementById("checkout-button").addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      if (!email) return alert("Por favor ingresa tu correo / Please enter your email");
+
       const response = await fetch("/create-checkout-session", {
         method: "POST",
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          product: "1k6FprMTlYMO96vZYOiPZDr0u0qrV5T1T"
+        })
       });
+
       const session = await response.json();
       await stripe.redirectToCheckout({ sessionId: session.id });
     });
